@@ -17,8 +17,6 @@ I think I'd come down on the side of modeling the survival data set. Modeling th
 - There's no option for going to a site other than the 3 observed sites (if we restict inference to just SMI, I don't think this is necessarily a problem)
 - Assumes that the probability of choosing a site doesn't depend on the site it chose the previous year (may or may not be realistic?)
 
-
-
 \begin{aligned}
   y_{i \cdot} &\sim \begin{cases}
       0 & z_{ij} = 0 \\
@@ -32,5 +30,4 @@ I think I'd come down on the side of modeling the survival data set. Modeling th
   \beta &\sim \text{N}(\mu_\beta, \sigma_\beta I)\\
   &\text{for $z_{i,j-1} = 0$:} \\
   z_{ij} &= 0
-  
 \end{aligned}

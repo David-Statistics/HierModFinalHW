@@ -70,6 +70,15 @@ rs.91.order <- rs.91[order(rs.91$withpup, decreasing = TRUE),, drop = FALSE]
 # order: increasing with year
 rs.91.o2 <- rs.91.order[order(rs.91.order$resight_year, decreasing = FALSE),, drop = FALSE]
 
+y <- matrix(0, nrow = length(unique(rs.91.o2$brand)), ncol = length(1991:(max(rs.91.o2$resight_year))))
+rownames(y) <- unique(rs.91.o2$brand)
+colnames(y) <- 1991:(max(rs.91.o2$resight_year))
+inds <- which(rs.91.o2$withpup == 1)
+for(ind in inds) {
+  i = which(rownames(y) == rs.91.o2$brand[ind])
+  t = which(colnames(y) == rs.91.o2$resight_year[ind])
+  y[i,t] = 1
+}
 
 resight.91.clean <- reshape(rs.91.o2, idvar = "brand", drop = "adjsex", v.names = "withpup",
         timevar = "resight_year", direction = "wide")

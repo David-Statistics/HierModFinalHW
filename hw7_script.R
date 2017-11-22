@@ -94,6 +94,35 @@ resight.91.clean
 # or not they had a pup with them 
 
 
+###
+### Calculate J and y
+###
 
+rm(list = ls())
+
+capture <- read.delim("data/NCEI_NatalityCaptureData.csv", sep = ",", header = TRUE)
+resight <- read.delim("data/NCEI_NatalityResightData.csv", sep = ",", header = TRUE)
+
+library(lubridate)
+resight$sitedate = mdy(resight$sitedate)
+resight$sightyear = year(resight$sitedate)
+years = sort(unique(resight$sightyear))
+years = years[years > 1990]
+## restrict to 1991
+
+brands = unique(capture$brand[which(capture$cohort == 1991)])
+
+y = sapply(brands, function(brand) {
+  sapply(years, function(k) {
+    sum(resight[resight$sightyear == k & resight$brand == brand, ]$withpup
+        %in% c("Y", "y"))
+  })
+})
+
+J = sapply(brands, function(brand) {
+  sapply(years, function(k) {
+    sum(resight$sightyear == k & resight$brand == brand)
+  })
+})
 
 

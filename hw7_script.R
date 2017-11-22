@@ -114,15 +114,17 @@ brands = unique(capture$brand[which(capture$cohort == 1991)])
 
 y = sapply(brands, function(brand) {
   sapply(years, function(k) {
-    sum(resight[resight$sightyear == k & resight$brand == brand, ]$withpup
-        %in% c("Y", "y"))
+    as.numeric(sum(resight[resight$sightyear == k & resight$brand == brand, ]$withpup
+        %in% c("Y", "y")) > 0)
   })
 })
 
-J = sapply(brands, function(brand) {
+z = sapply(brands, function(brand) {
   sapply(years, function(k) {
-    sum(resight$sightyear == k & resight$brand == brand)
+    as.numeric(sum(resight$sightyear == k & resight$brand == brand) > 0)
   })
 })
 
+source("./hw7_mcmc.R")
+out = hw7.mcmc(y,z, n.mcmc = 1e4)
 

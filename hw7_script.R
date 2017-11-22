@@ -1,13 +1,13 @@
 ####################
 # survival data
-# capture <- read.delim("data/NCEI_SurvivalCaptureData.csv", sep = ",", header = TRUE)
-# head(capture)
-# resight1 <- read.delim("data/NCEI_SurvivalResightData_1.csv", sep = ",", header = TRUE)
-# resight2 <- read.delim("data/NCEI_SurvivalResightData_2.csv", sep = ",", header = TRUE)
-# head(resight1)
-# head(resight2)
-# resight <- rbind(resight1, resight2)
-# head(resight)
+capt <- read.delim("data/NCEI_SurvivalCaptureData.csv", sep = ",", header = TRUE)
+head(capt)
+resight1 <- read.delim("data/NCEI_SurvivalResightData_1.csv", sep = ",", header = TRUE)
+resight2 <- read.delim("data/NCEI_SurvivalResightData_2.csv", sep = ",", header = TRUE)
+head(resight1)
+head(resight2)
+resight <- rbind(resight1, resight2)
+head(resight)
 
 # we need to use the natality data set if we want to model abundance of parous females
   

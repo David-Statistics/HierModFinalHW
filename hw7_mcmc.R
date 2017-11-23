@@ -1,6 +1,6 @@
 hw7.mcmc <- function(y, z, 
-                     p.tune = .05, alpha.p = 1, beta.p = 1, 
-                     psi.tune = .05, alpha.psi = 1, beta.psi = 1, 
+                     p.tune = .01, alpha.p = 1, beta.p = 1, 
+                     psi.tune = .01, alpha.psi = 1, beta.psi = 1, 
                      d.tune = .8, r.tune = .8,
                      mu0 = 1.5, s0 = .2, a = 1, b = 10,
                      n.mcmc = 1e4) {
@@ -9,6 +9,11 @@ hw7.mcmc <- function(y, z,
   ### Set up data
   ###
   
+  # y = seen with pup 
+  # z = seen at all 
+  
+  
+  # starting values for number recruited
   r = apply(y, 1, function(x) {
     if(sum(x) > 0) {
       return(which(x > 0)[1] - abs(rnorm(1,0,r.tune)))
@@ -16,15 +21,25 @@ hw7.mcmc <- function(y, z,
     return(18)
   })
   
+  # starting values for number dead/alive?? 
   d = apply(z, 1, function(x) {
     if(sum(x) > 0) {
       return(max(which(x > 0)) + abs(rnorm(1,0,.1)))
     }
     return(18)
   })
+  
+  
+  # how many were seen with a pup each year
   rs.y = rowSums(y)
+  
+  # how many were seen each year
   rs.z = rowSums(z)
+  
+  # how many were recruited in each year
   max.r = ceiling(r)
+  
+  # ?
   min.d = floor(d)
   
   p = .01
@@ -35,6 +50,12 @@ hw7.mcmc <- function(y, z,
   r.save = matrix(0, nrow = length(r), ncol = n.mcmc)
   d.save = matrix(0, nrow = length(d), ncol = n.mcmc)
   lambda.save = numeric(n.mcmc)
+  
+  
+  # for mh acceptance ratio
+  kp = 1
+  kpsi = 1
+  
   
   ###
   ### Start MCMC
@@ -58,8 +79,11 @@ hw7.mcmc <- function(y, z,
         dbeta(p, alpha.p, beta.p, log = TRUE)
       if(log(runif(1)) < mh.num - mh.den) {
         p = p.prop
+        kp = kp + 1
       }
     }
+    
+    
     
     ###
     ###  update psi
@@ -73,6 +97,7 @@ hw7.mcmc <- function(y, z,
         dbeta(psi, alpha.psi, beta.psi, log = TRUE)
       if(log(runif(1)) < mh.num - mh.den) {
         psi = psi.prop
+        kpsi = kpsi + 1
       }
     }
     
@@ -129,6 +154,8 @@ hw7.mcmc <- function(y, z,
               r.save = r.save,
               d.save = d.save,
               lambda.save = lambda.save,
-              n.mcmc = n.mcmc))
+              n.mcmc = n.mcmc,
+              kp = kp/n.mcmc, 
+              kpsi = kpsi/n.mcmc))
   
 }

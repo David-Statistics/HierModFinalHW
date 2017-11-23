@@ -1,4 +1,4 @@
-hw7.mcmc <- function(y, z, 
+hw7.mcmc2 <- function(y, z, 
                      p.tune = .01, alpha.p = 1, beta.p = 1, 
                      psi.tune = .01, alpha.psi = 1, beta.psi = 1, 
                      d.tune = .8, r.tune = .8,
@@ -30,18 +30,24 @@ hw7.mcmc <- function(y, z,
   })
   
   
-  # how many years we saw each individual with a pup
+  # how many were seen with a pup each year
   rs.y = rowSums(y)
   
-  # how many times we saw each individual
+  # how many were seen each year
   rs.z = rowSums(z)
   
-  # first year we saw each invdividual with a pup
+  # first year we saw a pup for each individual
   max.r = ceiling(r)
   r[rowSums(y) == 0] = 1
   
-  # last year we saw each invidivual
+  # last year we saw each individual
   min.d = floor(d)
+  
+  # total pups
+  n.pups = sum(y)
+  
+  # total sightings
+  n.sightings = sum(z)
   
   p = .01
   psi = .01
@@ -72,36 +78,14 @@ hw7.mcmc <- function(y, z,
       length(ceiling(r[i]):floor(d[i]))
     })
     
-    p.prop <- rnorm(1, p, p.tune)
-    if(p.prop > 0 & p.prop < 1) {
-      mh.num <- sum(dbinom(rs.y, n.avail.years, p.prop, log = TRUE)) +
-        dbeta(p.prop, alpha.p, beta.p, log = TRUE)
-      mh.den <- sum(dbinom(rs.y, n.avail.years, p, log = TRUE)) +
-        dbeta(p, alpha.p, beta.p, log = TRUE)
-      if(log(runif(1)) < mh.num - mh.den) {
-        p = p.prop
-        kp = kp + 1
-      }
-    }
-    
+    p = rbeta(1, alpha.p + n.pups, beta.p + sum(n.avail.years) - n.pups)
     
     
     ###
     ###  update psi
     ###
     
-    psi.prop <- rnorm(1, psi, psi.tune)
-    if(psi.prop > 0 & psi.prop < 1) {
-      mh.num <- sum(dbinom(rs.z, floor(d) - 1, psi.prop, log = TRUE)) +
-        dbeta(psi.prop, alpha.psi, beta.psi, log = TRUE)
-      mh.den <- sum(dbinom(rs.z, floor(d) - 1, psi, log = TRUE)) +
-        dbeta(psi, alpha.psi, beta.psi, log = TRUE)
-      if(log(runif(1)) < mh.num - mh.den) {
-        psi = psi.prop
-        kpsi = kpsi + 1
-      }
-    }
-    
+    psi = rbeta(1, alpha.psi + n.sightings, beta.psi + sum(floor(d)) - n.sightings)
     
     ###
     ### update r
@@ -155,8 +139,6 @@ hw7.mcmc <- function(y, z,
               r.save = r.save,
               d.save = d.save,
               lambda.save = lambda.save,
-              n.mcmc = n.mcmc,
-              kp = kp/n.mcmc, 
-              kpsi = kpsi/n.mcmc))
+              n.mcmc = n.mcmc))
   
 }

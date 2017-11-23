@@ -128,7 +128,9 @@ z = sapply(brands, function(brand) {
 ## view output
 
 source("./hw7_mcmc.R")
-out = hw7.mcmc(y,z, n.mcmc = 100000)
+out = hw7.mcmc(y,z, n.mcmc = 1e4)
+source("./hw_mcmc_lessMH.R")
+out2 = hw7.mcmc2(y, z, n.mcmc = 1e4)
 
 plot(out$p.save, type = "l")
 plot(out$psi.save, type = "l")

@@ -112,32 +112,37 @@ years = years[years > 1990]
 
 brands = unique(capture$brand[which(capture$cohort == 1991)])
 
-y = sapply(brands, function(brand) {
+y = t(sapply(brands, function(brand) {
   sapply(years, function(k) {
     as.numeric(sum(resight[resight$sightyear == k & resight$brand == brand, ]$withpup
         %in% c("Y", "y")) > 0)
   })
-})
+}))
 
-z = sapply(brands, function(brand) {
+z = t(sapply(brands, function(brand) {
   sapply(years, function(k) {
     as.numeric(sum(resight$sightyear == k & resight$brand == brand) > 0)
   })
-})
+}))
 
 ## view output
 
-source("./hw7_mcmc.R")
-out = hw7.mcmc(y,z, n.mcmc = 1e4)
-source("./hw_mcmc_lessMH.R")
-out2 = hw7.mcmc2(y, z, n.mcmc = 1e4)
+## don't use original mcmc script any more (I have only updated the one without
+## the unnecessary MH)
+# source("./hw7_mcmc.R")
+#out = hw7.mcmc(y,z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5)
 
-plot(out$p.save, type = "l")
-plot(out$psi.save, type = "l")
-plot(out$r.save[5,], type = "l")
-plot(out$lambda.save, type = "l")
+source("./hw7_mcmc_lessMH.R")
+out2 = hw7.mcmc2(y, z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5, p.tune = .05,
+                 psi.tune = .05)
+
+plot(out2$p.save, type = "l")
+plot(out2$psi.save, type = "l")
+plot(out2$r.save[5,], type = "l")
+plot(out2$lambda.save, type = "l")
 out$kp
 out$kpsi
 
-# gonna need to burn in about half these samples 
+# still takes awhile to burn in - may be able to change that if we mess around with 
+# the tuning parameters.
 

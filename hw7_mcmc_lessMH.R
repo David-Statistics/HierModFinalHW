@@ -49,8 +49,8 @@ hw7.mcmc2 <- function(y, z,
   # total sightings
   n.sightings = sum(z)
   
-  p = .01
-  psi = .01
+  p = .1
+  psi = .1
   
   p.save = numeric(n.mcmc)
   psi.save = numeric(n.mcmc)
@@ -58,10 +58,6 @@ hw7.mcmc2 <- function(y, z,
   d.save = matrix(0, nrow = length(d), ncol = n.mcmc)
   lambda.save = numeric(n.mcmc)
   
-  
-  # for mh acceptance ratio
-  kp = 1
-  kpsi = 1
   
   
   ###
@@ -98,9 +94,9 @@ hw7.mcmc2 <- function(y, z,
       length(ceiling(r.prop[i]):floor(d[i]))
     })
     mh.cuts = sapply(valid.r, function(i) {
-      dbinom(rs.y[i], n.avail.years.prop[i], p, log = TRUE) +
+      dbinom(rs.y[i], min(18, n.avail.years.prop[i]), p, log = TRUE) +
         dlnorm(r.prop[i], mu0, s0, log = TRUE) -
-        dbinom(rs.y[i], n.avail.years[i], p, log = TRUE) -
+        dbinom(rs.y[i], min(18, n.avail.years[i]), p, log = TRUE) -
         dlnorm(r[i], mu0, s0, log = TRUE)
     })
     updates = valid.r[which(log(runif(length(valid.r))) < mh.cuts)]
@@ -119,9 +115,9 @@ hw7.mcmc2 <- function(y, z,
     d.prop = d + rnorm(length(d), 0, d.tune)
     valid.d = which(d.prop > min.d & d.prop > 0 & d.prop > r)
     mh.cuts = sapply(valid.d, function(i) {
-      dbinom(rs.z[i], floor(d.prop[i]), psi, log = TRUE) +
+      dbinom(rs.z[i], min(18, floor(d.prop[i])), psi, log = TRUE) +
         dexp(d.prop[i], lambda, log = TRUE) -
-        dbinom(rs.z[i], floor(d[i]), psi, log = TRUE) -
+        dbinom(rs.z[i], min(18, floor(d[i])), psi, log = TRUE) -
         dexp(d[i], lambda, log = TRUE)
     })
     updates = valid.d[which(log(runif(length(valid.d))) < mh.cuts)]

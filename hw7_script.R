@@ -138,7 +138,7 @@ out2 = hw7.mcmc2(y, z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5, p.tune = .05,
 
 plot(out2$p.save, type = "l")
 plot(out2$psi.save, type = "l")
-plot(out2$r.save[5,], type = "l")
+plot(out2$r.save[100,], type = "l")
 plot(out2$lambda.save, type = "l")
 
 # still takes awhile to burn in - may be able to change that if we mess around with 

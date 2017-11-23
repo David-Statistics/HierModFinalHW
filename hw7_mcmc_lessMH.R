@@ -1,13 +1,16 @@
 hw7.mcmc2 <- function(y, z, 
-                     p.tune = .01, alpha.p = 1, beta.p = 1, 
-                     psi.tune = .01, alpha.psi = 1, beta.psi = 1, 
+                     p.tune = .01, alpha.p = .01, beta.p = .03, 
+                     psi.tune = .01, alpha.psi = .01, beta.psi = .005, 
                      d.tune = .8, r.tune = .8,
-                     mu0 = 1.5, s0 = .2, a = 1, b = 10,
+                     mu0 = 1.6, s0 = .125, a = 125, b = 5,
                      n.mcmc = 1e4) {
   
   ###
   ### Set up data
   ###
+  
+  # are you modeling mu_r? 
+  # or just setting the hyperparameters for log(r)?
   
   # y = seen with pup 
   # z = seen at all 
@@ -59,7 +62,6 @@ hw7.mcmc2 <- function(y, z,
   lambda.save = numeric(n.mcmc)
   
   
-  
   ###
   ### Start MCMC
   ###
@@ -75,7 +77,6 @@ hw7.mcmc2 <- function(y, z,
     })
     
     p = rbeta(1, alpha.p + n.pups, beta.p + sum(n.avail.years) - n.pups)
-    
     
     ###
     ###  update psi

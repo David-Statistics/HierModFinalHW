@@ -13,13 +13,67 @@
 
 \section{Background} 
 
-$\indent$ Important drivers of mammalian population dynamics include juvenile survival and birth rate (cite). The number of actively reproducing females in a population reflects these two factors. We investigated the trend over time in the abundance of parturient females in a population of California sea lions on San Miguel Island. Parturient females were defined for a given year as those that had given birth that year. We were interested in how parturient female abundance changes over time in response to variables such as el Nino and age of the individual. 
+$\indent$ Survival and reproduction are key elements of a successful population. Lifetimes can provide information about population growth and size, and recruitment times can inform population growth rates. Recruitment times are defined as the time it takes for an individual to become parous, that is, to reproduce for the first time. Both survival rates and  recruitment may be affected by environmental factors and can influence the health and stability of a population. We investigated the lifetime and time until recruitment in a population of California sea lions. Estimates of these population parameters can be used by researchers to assess population trends over time for management, conservation, and scientific purposes.  
 
-The data are from a long-term capture-resight study conducted by Melin et al (2012) on San Miguel Island. Between 1987 and 2001, researchers branded 3945 healthy 4-5 month old female sea lion pups. The researchers took observations of the population during the summers in the years 1991-2008, recording each time a branded sea lion was resighted. They recorded the sea lion's brand number, date and location of resight, and indicated if the sea lion was seen with her own pup or not. 
+The data are from a long-term capture-resight study conducted by Melin et al (2012) on San Miguel Island. Between 1987 and 2001, researchers branded 3945 healthy 4-5 month old female sea lion pups. The researchers took observations of the population during the summers in the years 1991-2008, recording each time a branded sea lion was resighted. They recorded the sea lion's brand number, date and location of resight, and indicated if the sea lion was seen with her own pup or not. This long-term capture-resight study provides useful data for estimating various population parameters, specifically time until recruitment and death. 
 
-We analyzed a subset of the data consisting of a cohort of female sea lion pups branded in 1991 and resighted between 1992 and 2008. We fit a hierarchical abundance model to estimate the number of individuals from the 1991 cohort that gave birth in each resight year. Our model could be generalized further to estimate the total number of parturient females in the population in a given year. These estimates provide information about population size, growth, and health, and are therefore useful for wildlife management, conservation, and research purposes. 
 
 \section{Build Model}
 
+We analyzed a subset of the data consisting of a cohort of 259 female sea lion pups branded in 1991 and resighted between 1992 and 2008. To estimate time until recruitment and time until death for the 1991 cohort, we fit the following hierarchical model. \\
+\\
+For $i = 1, \ldots n$, $t = 1, \ldots, T$, and $r_i \leq d_i$ for all $i$, 
+
+\begin{eqnarray*}
+y_{it} & \sim & \begin{cases} 0 & , t \leq r_i \\
+\text{Bern}(p) & , t > r_i \end{cases} \\
+z_{it} & \sim & \begin{cases} 0 & , t > d_i \\
+\text{Bern}(\psi) & , t \leq d_i \end{cases} \\
+\log(r_i) & \sim & \text{N}(\mu_r, \sigma_r^2) \\
+d_i & \sim & \exp(\lambda) \\
+\mu_r & \sim & \text{N}(\mu_0, \sigma_0^2) \\
+\lambda & \sim & \text{Gamma}(\alpha, \beta) \\
+p & \sim & \text{Beta}(\alpha_p, \beta_p) \\
+\psi & \sim & \text{Beta}(\alpha_{\psi}, \beta_{\psi} )\\
+\end{eqnarray*}
+where $y_{it}$ indicates if individual $i$ was observed with a pup in year $t$, $z_{it}$ indicates if individual $i$ was observed in year $t$, $p$ is the probability of detecting an individual with her pup given that she was alive and parous, $\psi$ is the probability of detecting an individual given that she was alive, $r_i$ is the recruitment time for individual $i$, and $d_i$ is the lifetime for individual $i$. 
+
+\section{Prior Specification}
+The parameter $\lambda$ corresponds to the average life span for California sea lions. Previous research puts the current estimates of California sea lion life expectancy at 20-30 years (NOAA). We let $\alpha = 125$ and $\beta = 5$, corresponding to an E$[\lambda] = 25$ years and Var$[\lambda] = 5$ years. This allows for large variation in each individual's time until death, which is useful because some individuals may die as a young pup and others may live well past the life expectancy. 
+
+We chose the prior hyperparameters for $\log(r_i)$ and $\mu_r$ based off current data regarding time at which California sea lions reach sexual maturity. Current estimates have this age at 4-5 years (Riedman 1990); therefore, we let $\mu_0 = 1.6$ and $\sigma_0^2 = .125$. This roughly corresponds to an average recruitment time of 5 years with moderate variation around this number. We let $\sigma_r^2 = .5$ to allow larger variation in individual recruitment times. 
+
+Priors for detection probability with pup and detection probability. (Vague, relatively unknown). 
+
+\section{Posterior Distribution}
+
+\begin{eqnarray*}
+[\log (\mathbf{r}), \mu_r, p, \mathbf{d}, \lambda, \psi | \mathbf{z}, \mathbf{y} ] & \propto & \prod_{i=1}^n \prod_{t=1} ^T  1\{r_i \leq d_i \} [y_{it}|p,r_i]^{1\{ t > r_i \}} 1^{1\{ t \leq r_i \}} [z_{it}|\psi, d_i]^{1 \{ t \leq d_i\} } 1^{1 \{ t > d_i\}} \\
+  & \times & [\log(r_i)|\mu_r][d_i|\lambda]  [\mu_r][\lambda][p][\psi]
+\end{eqnarray*}
+
+
+\section{Algorithm}
+
+We derived the full conditionals for $p$, $\psi$, and $\lambda$ (Appendix) and updated those parameters with a Gibbs sampler. We updated $\mathbf{d}, \mathbf{r}$, and $\mu_r$ with Metropolis-Hastings. We ran the MCMC algorithm for 100,000 iterations with a burn-in period of 50,000. Resulting trace plots showed thorough mixing and convergence of parameters. 
+
+\section{Appendix}
+
+\subsection{Full Conditionals} 
+
+Full conditional distributions were derived for the parameters $p$, $\psi$, and $\lambda$:
+\begin{eqnarray*}
+p | \cdot & \sim & \text{Beta} \left( \alpha_p + \sum_{i=1}^n \sum_{t=1}^T 1 \{ t > r_i \} y_{it}, \beta_p + \sum_{i=1}^n \sum_{t=1}^T 1\{ t > r_i \} (1 - y_{it}) \right)  \\
+\lambda | \cdot & \sim & \text{Gamma} \left( \alpha + n, \beta + \sum_{i=1}^n d_i \right) \\
+\psi | \cdot & \sim & \text{Beta}\left( \alpha_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{t \leq d_i \} z_{it}, \beta_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{t \leq d_i \} (1 - z_{it}) \right) 
+\end{eqnarray*}
+The parameters $\mathbf{d}, \mathbf{r}$, and $\mu_r$, did not have recognizable full conditionals so we updated them with Metropolis-Hastings.  
+
+\subsection{citations} 
+
+http://www.nmfs.noaa.gov/pr/species/mammals/sealions/california-sea-lion.html
+
+
+Riedman, M. 1990. The Pennipeds: Seals, Sea Lions, and Walruses. Berkeley, California: University of California Press. 
 
 \end{document}

@@ -140,8 +140,6 @@ plot(out2$p.save, type = "l")
 plot(out2$psi.save, type = "l")
 plot(out2$r.save[5,], type = "l")
 plot(out2$lambda.save, type = "l")
-out$kp
-out$kpsi
 
 # still takes awhile to burn in - may be able to change that if we mess around with 
 # the tuning parameters.

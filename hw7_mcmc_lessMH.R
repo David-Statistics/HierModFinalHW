@@ -9,14 +9,11 @@ hw7.mcmc2 <- function(y, z,
   ### Set up data
   ###
   
-  # are you modeling mu_r? 
-  # or just setting the hyperparameters for log(r)?
-  
   # y = seen with pup 
   # z = seen at all 
   
   
-  # starting values for number recruited
+  # starting values for time until recruitment
   r = apply(y, 1, function(x) {
     if(sum(x) > 0) {
       return(which(x > 0)[1] - abs(rnorm(1,0,r.tune)))
@@ -24,7 +21,7 @@ hw7.mcmc2 <- function(y, z,
     return(18)
   })
   
-  # starting values for number dead/alive?? 
+  # starting values for time until death
   d = apply(z, 1, function(x) {
     if(sum(x) > 0) {
       return(max(which(x > 0)) + abs(rnorm(1,0,.1)))
@@ -33,15 +30,15 @@ hw7.mcmc2 <- function(y, z,
   })
   
   
-  # how many were seen with a pup each year
+  # how many years each individual was seen with a pup
   rs.y = rowSums(y)
   
-  # how many were seen each year
+  # how many years each individual was seen
   rs.z = rowSums(z)
   
   # first year we saw a pup for each individual
   max.r = ceiling(r)
-  r[rowSums(y) == 0] = 1
+  r[rowSums(y) == 0] = 1 
   
   # last year we saw each individual
   min.d = floor(d)
@@ -61,7 +58,6 @@ hw7.mcmc2 <- function(y, z,
   d.save = matrix(0, nrow = length(d), ncol = n.mcmc)
   lambda.save = numeric(n.mcmc)
   
-  
   ###
   ### Start MCMC
   ###
@@ -72,6 +68,7 @@ hw7.mcmc2 <- function(y, z,
     ### update p
     ###
     
+    # count the number of years between r_i and d_i
     n.avail.years = sapply(seq_along(r), function(i) {
       length(ceiling(r[i]):floor(d[i]))
     })

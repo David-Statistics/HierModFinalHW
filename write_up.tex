@@ -3,19 +3,21 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{xcolor}
+\usepackage{cite}
 \usepackage{amssymb}
 \usepackage{setspace}
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
 \newcommand*\Diff[1]{\mathop{}\!\mathrm{d^#1}}
 \usepackage{graphicx} 
+
 \begin{document}
 \doublespacing
 
 \section{Background} 
 
-$\indent$ Survival and reproduction are key elements of a successful population. Lifetimes can provide information about population growth and size, and recruitment times can inform population growth rates. Recruitment times are defined as the time it takes for an individual to become parous, that is, to reproduce for the first time. Both survival rates and  recruitment may be affected by environmental factors and can influence the health and stability of a population. We investigated the lifetime and time until recruitment in a population of California sea lions. Estimates of these population parameters can be used by researchers to assess population trends over time for management, conservation, and scientific purposes.  
+$\indent$ Survival and reproduction are key elements of a successful population. Lifetimes can provide information about population growth and size, and recruitment times can inform population growth rates. Recruitment times are defined as the time it takes for an individual to become parous, or to reproduce for the first time. Both survival rates and  recruitment may be affected by environmental factors and can influence the health and stability of a population. We investigated the lifetime and recruitment time in a population of California sea lions. Estimates of these population parameters can be used by researchers to assess population trends over time for management, conservation, and scientific purposes.  
 
-The data are from a long-term capture-resight study conducted by Melin et al (2012) on San Miguel Island. Between 1987 and 2001, researchers branded 3945 healthy 4-5 month old female sea lion pups. The researchers took observations of the population during the summers in the years 1991-2008, recording each time a branded sea lion was resighted. They recorded the sea lion's brand number, date and location of resight, and indicated if the sea lion was seen with her own pup or not. This long-term capture-resight study provides useful data for estimating various population parameters, specifically time until recruitment and death. 
+The data are from a long-term capture-resight study conducted by Melin et al on San Miguel Island \cite{Melin}. Between 1987 and 2001, researchers branded 3945 healthy 4-5 month old female sea lion pups. The researchers took observations of the population during the summers in the years 1991-2008, recording each time a branded sea lion was resighted. They recorded the sea lion's brand number, date and location of resight, and indicated if the sea lion was seen with her own pup or not. This long-term capture-resight study provides useful data for estimating various population parameters, specifically time until recruitment and death. 
 
 \section{Build Model}
 
@@ -31,18 +33,19 @@ z_{it} & \sim & \begin{cases} 0 & , t > d_i \\
 \log(r_i) & \sim & \text{N}(\mu_r, \sigma_r^2) \\
 d_i & \sim & \exp(\lambda) \\
 \mu_r & \sim & \text{N}(\mu_0, \sigma_0^2) \\
-\lambda & \sim & \text{Gamma}(\alpha, \beta) \\
+\sigma_r^2 & \sim & \text{IG}(\alpha_{\sigma}, \beta_{\sigma}) \\
+\lambda & \sim & \text{Gamma}(\alpha_{\lambda}, \beta_{\lambda}) \\
 p & \sim & \text{Beta}(\alpha_p, \beta_p) \\
 \psi & \sim & \text{Beta}(\alpha_{\psi}, \beta_{\psi} )\\
 \end{eqnarray*}
 where $y_{it}$ indicates if individual $i$ was observed with a pup in year $t$, $z_{it}$ indicates if individual $i$ was observed in year $t$, $p$ is the probability of detecting an individual with her pup given that she was alive and parous, $\psi$ is the probability of detecting an individual given that she was alive, $r_i$ is the recruitment time for individual $i$, and $d_i$ is the lifetime for individual $i$. 
 
 \section{Prior Specification}
-$\indent$ The parameter $\lambda$ denotes the average life span for California sea lions. Previous research estimates sea lion life expectancy to be around 20-30 years (NOAA). We let $\alpha = 125$ and $\beta = 5$, corresponding to an E$[\lambda] = 25$ years and Var$[\lambda] = 5$ years. This allows for large variation in each individual's time until death, which is useful because some individuals may die as a young pup and others may live well past the life expectancy. 
+$\indent$ The parameter $\lambda$ denotes the average life span for California sea lions. Previous research estimates sea lion life expectancy to be around 20-30 years \cite{NOAA}. We let $\alpha_{\lambda} = 125$ and $\beta_{\lambda} = 5$, corresponding to an E$[\lambda] = 25$ years and Var$[\lambda] = 5$ years. This allows for large variation in each individual's time until death, which is useful because some individuals may die as a young pup and others may live well past the life expectancy. 
 
-We chose the prior hyperparameters for $\log(r_i)$ and $\mu_r$ based off current data regarding time at which California sea lions reach sexual maturity. Current estimates have this age at 4-5 years (Riedman 1990); therefore, we let $\mu_0 = 1.6$ and $\sigma_0^2 = .125$. This roughly corresponds to an average recruitment time of 5 years with moderate variation around this number. We let $\sigma_r^2 = .5$ to allow larger variation in individual recruitment times. 
+We chose the prior hyperparameters for $\mu_r$ and $\sigma_r^2$ based off recent research on South American sea lions. In a study by Grandi et al, researchers estimated that female South American sea lions reach sexual maturity around 4.8 $\pm$ 0.5 years \cite{Grandi}. We estimated that California sea lions would mature at a similar age and therefore let $\mu_0 = 1.6$ and $\sigma_0^2 = .125$. This roughly corresponds to an average recruitment time of five years and allows for moderate variation around this mean. We let $\alpha_{\sigma} = 3$ and $\beta_{\sigma} = 1$ so the expected variation in $\log(r_i)$ is E$[\sigma_r^2] = 0.5$ and Var$[\sigma_r^2] = 0.25$. This allows individual recruitment times to have reasonable variability around the mean. 
 
-We set the prior hyperparameters for $p$, the probability of detecting an individual with her pup given she was alive and able to reproduce, as $\alpha_p = .01$ and $\beta_p = .03$. Then E$[p] = 0.25$ and Var$[p] = .18$. This allows substantial uncertainty in $p$, but reflects the idea that that $p$ may be low since mothers do not spend all of their time with their pups. We set the hyperparameters for $\psi$, the probability of detecting an individual given that she was alive, as $\alpha_{\psi} = .01$ and $\beta_{\psi} = .005$. This corresponds to E$[\psi] = .67$ and Var$[\psi] = .22$, reflecting moderate uncertainty but placing more mass on higher probabilities compared with $p$. 
+We set the prior hyperparameters for $p$, the probability of detecting an individual with her pup given she was alive and able to reproduce, as $\alpha_p = .01$ and $\beta_p = .03$. Then E$[p] = 0.25$ and Var$[p] = .18$. This allows substantial uncertainty in $p$, but reflects the idea that that $p$ may be low since not all fertile sea lions reproduce and mothers do not spend all of their time with their pups. We set the hyperparameters for $\psi$, the probability of detecting an individual given that she was alive, as $\alpha_{\psi} = .01$ and $\beta_{\psi} = .005$. This corresponds to E$[\psi] = .67$ and Var$[\psi] = .22$, reflecting moderate uncertainty but placing more mass on higher probabilities compared with $p$. 
 
 \section{Posterior Distribution}
 
@@ -54,25 +57,37 @@ We set the prior hyperparameters for $p$, the probability of detecting an indivi
 
 \section{Algorithm}
 
-We derived the full conditionals for $p$, $\psi$, and $\lambda$ (Appendix) and updated those parameters with a Gibbs sampler. We updated $\mathbf{d}, \mathbf{r}$, and $\mu_r$ with Metropolis-Hastings. We ran the MCMC algorithm for 100,000 iterations with a burn-in period of 50,000. Resulting trace plots showed thorough mixing and convergence of parameters. 
+We derived the full conditionals for $p$, $\psi$, $\lambda$, and $\sigma_r^2$ (Appendix) and updated those parameters with a Gibbs sampler. We updated $\mathbf{d}, \mathbf{r}$, and $\mu_r$ with Metropolis-Hastings. We ran the MCMC algorithm for 100,000 iterations with a burn-in period of 50,000. Resulting trace plots showed thorough mixing and convergence of parameters. 
+
+\section{Results}
+
+
 
 \section{Appendix}
 
 \subsection{Full Conditionals} 
 
-Full conditional distributions were derived for the parameters $p$, $\psi$, and $\lambda$:
+Full conditional distributions were derived for the parameters $p$, $\psi$, $\lambda$, and $\sigma_r^2$:
 \begin{eqnarray*}
-p | \cdot & \sim & \text{Beta} \left( \alpha_p + \sum_{i=1}^n \sum_{t=1}^T 1 \{ t > r_i \} y_{it}, \beta_p + \sum_{i=1}^n \sum_{t=1}^T 1\{ t > r_i \} (1 - y_{it}) \right)  \\
-\lambda | \cdot & \sim & \text{Gamma} \left( \alpha + n, \beta + \sum_{i=1}^n d_i \right) \\
-\psi | \cdot & \sim & \text{Beta}\left( \alpha_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{t \leq d_i \} z_{it}, \beta_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{t \leq d_i \} (1 - z_{it}) \right) 
+p | \cdot & \sim & \text{Beta} \left( \alpha_p + \sum_{i=1}^n \sum_{t=1}^T 1 \{ r_i \leq t \leq d_i \} y_{it}, \beta_p + \sum_{i=1}^n \sum_{t=1}^T 1\{ r_i \leq t \leq d_i \} (1 - y_{it}) \right)  \\
+\lambda | \cdot & \sim & \text{Gamma} \left( \alpha_{\lambda} + n, \beta_{\lambda} + \sum_{i=1}^n d_i \right) \\
+\psi | \cdot & \sim & \text{Beta}\left( \alpha_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i\} z_{it}, \beta_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i \} (1 - z_{it}) \right) \\
+\sigma_{r}^2 | \cdot & \sim & \text{IG} \left( \alpha_{\sigma} + \frac{n}{2}, \beta_{\sigma} + \frac{1}{2} \sum_{i=1}^n ( \log(r_i) - \mu_r)^2 \right)
 \end{eqnarray*}
 The parameters $\mathbf{d}, \mathbf{r}$, and $\mu_r$, did not have recognizable full conditionals so we updated them with Metropolis-Hastings.  
 
-\subsection{citations} 
+\begin{thebibliography}{99}
 
-http://www.nmfs.noaa.gov/pr/species/mammals/sealions/california-sea-lion.html
+\bibitem{NOAA}
+NOAA: California Sea Lion, \\
+\text{http://www.nmfs.noaa.gov/pr/species/mammals/sealions/california-sea-lion.html}
 
+\bibitem{Grandi}
+Grandi, M.F., Dans, S.L., Garcia, N.A., Crespo, E.A. 2010. \emph{Growth and age at sexual maturity of South American sea lions}. Mammalian Biology, 75(5):427-436.   
 
-Riedman, M. 1990. The Pennipeds: Seals, Sea Lions, and Walruses. Berkeley, California: University of California Press. 
+\bibitem{Melin}
+Melin, Sharon R.; DeLong,Robert L.; Orr, Anthony J.; Laake, Jeffrey L.; Harris, Jeffrey D.; NOAA NMFS Alaska Fisheries Science Center, Marine Mammal Laboratory (2016). Survival and natality rate observations of California sea lions at San Miguel Island, California conducted by Alaska Fisheries Science Center, National Marine Mammal Laboratory from 1987-09-20 to 2014-09-25 (NCEI Accession 0145167). Version 2.2. NOAA National Centers for Environmental Information. Dataset. [Nov. 19, 2017]
+
+\end{thebibliography}
 
 \end{document}

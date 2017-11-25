@@ -133,8 +133,7 @@ z = t(sapply(brands, function(brand) {
 #out = hw7.mcmc(y,z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5)
 
 source("./hw7_mcmc_lessMH.R")
-out2 = hw7.mcmc2(y, z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5, p.tune = .05,
-                 psi.tune = .05)
+out2 = hw7.mcmc2(y, z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5)
 
 plot(out2$p.save, type = "l")
 plot(out2$psi.save, type = "l")

@@ -1,8 +1,10 @@
 hw7.mcmc2 <- function(y, z, 
-                     p.tune = .01, alpha.p = .01, beta.p = .03, 
-                     psi.tune = .01, alpha.psi = .01, beta.psi = .005, 
+                     alpha.p = .01, beta.p = .03, 
+                     alpha.psi = .01, beta.psi = .005, 
+                     mu0 = 1.6, s20 = .25^2,
+                     a.sigma = .25, b.sigma = 16,
                      d.tune = .8, r.tune = .8,
-                     mu0 = 1.6, s0 = .125, a = 125, b = 5,
+                     a.lambda = 125, b.lambda = 5,
                      n.mcmc = 1e4) {
   
   ###
@@ -54,11 +56,17 @@ hw7.mcmc2 <- function(y, z,
   
   p = .1
   psi = .1
+  n = length(d)
+  mu_r = mu0
+  s2_r = a.sigma/b.sigma
+  s_r = sqrt(s2_r)
   
   p.save = numeric(n.mcmc)
   psi.save = numeric(n.mcmc)
   r.save = matrix(0, nrow = length(r), ncol = n.mcmc)
   d.save = matrix(0, nrow = length(d), ncol = n.mcmc)
+  mu_r.save = numeric(n.mcmc)
+  s2_r.save = numeric(n.mcmc)
   lambda.save = numeric(n.mcmc)
   
   
@@ -96,18 +104,32 @@ hw7.mcmc2 <- function(y, z,
     })
     mh.cuts = sapply(valid.r, function(i) {
       dbinom(rs.y[i], min(18, n.avail.years.prop[i]), p, log = TRUE) +
-        dlnorm(r.prop[i], mu0, s0, log = TRUE) -
+        dlnorm(r.prop[i], mu_r, s_r, log = TRUE) -
         dbinom(rs.y[i], min(18, n.avail.years[i]), p, log = TRUE) -
-        dlnorm(r[i], mu0, s0, log = TRUE)
+        dlnorm(r[i], mu_r, s_r, log = TRUE)
     })
     updates = valid.r[which(log(runif(length(valid.r))) < mh.cuts)]
     r[updates] = r.prop[updates]
     
     ###
+    ### update mu_r
+    ###
+    
+    mu_r = rnorm(1, (s2_r * mu0 + s20*sum(log(r)))/(s2_r+n*s20), 
+                 sqrt(s2_r*s20/(s2_r+n*s20)))
+    
+    ###
+    ### update s2_r
+    ###
+    
+    s2_r = 1/rgamma(1,n/2 + a.sigma, rate = sum((log(r) - mu_r)^2)/2 + 1/b.sigma)
+    s_r = sqrt(s2_r)
+    
+    ###
     ### update lambda
     ###
     
-    lambda = rgamma(1, a + length(d), b + sum(d))
+    lambda = rgamma(1, a.lambda + length(d), b.lambda + sum(d))
     
     ###
     ### update d
@@ -129,6 +151,8 @@ hw7.mcmc2 <- function(y, z,
     r.save[,k] = r
     d.save[,k] = d
     lambda.save[k] = lambda
+    mu_r.save[k] = mu_r
+    s2_r.save[k] = s2_r
   }
   
   return(list(p.save = p.save,
@@ -136,6 +160,8 @@ hw7.mcmc2 <- function(y, z,
               r.save = r.save,
               d.save = d.save,
               lambda.save = lambda.save,
+              mu_r.save = mu_r.save,
+              s2_r.save = s2_r.save,
               n.mcmc = n.mcmc))
   
 }

@@ -133,12 +133,19 @@ z = t(sapply(brands, function(brand) {
 #out = hw7.mcmc(y,z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5)
 
 source("./hw7_mcmc_lessMH.R")
-out2 = hw7.mcmc2(y, z, n.mcmc = 1e4, r.tune = 1.5, d.tune = 1.5)
 
-plot(out2$p.save, type = "l")
-plot(out2$psi.save, type = "l")
+n.mcmc <- 1e5
+
+out2 = hw7.mcmc2(y, z, n.mcmc = n.mcmc, r.tune = 1.5, d.tune = 1.5)
+
+nburn <- .5*n.mcmc
+
+plot(out2$p.save[-(1:nburn)], type = "l")
+plot(out2$psi.save[-(1:nburn)], type = "l")
 plot(out2$r.save[100,], type = "l")
-plot(out2$lambda.save, type = "l")
+plot(out2$lambda.save[-(1:nburn)], type = "l")
+
+
 
 # still takes awhile to burn in - may be able to change that if we mess around with 
 # the tuning parameters.

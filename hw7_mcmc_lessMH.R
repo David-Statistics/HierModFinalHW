@@ -1,10 +1,10 @@
 hw7.mcmc2 <- function(y, z, 
                      alpha.p = .01, beta.p = .03, 
                      alpha.psi = .01, beta.psi = .005, 
-                     mu0 = 1.6, s20 = .25^2,
-                     a.sigma = .25, b.sigma = 16,
+                     mu0 = 1.6, s20 = .0625,
+                     a.sigma = 3, b.sigma = 1,
                      d.tune = .8, r.tune = .8,
-                     a.lambda = 125, b.lambda = 5,
+                     a.lambda = .008, b.lambda = .2,
                      n.mcmc = 1e4) {
   
   ###

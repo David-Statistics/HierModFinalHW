@@ -1,10 +1,10 @@
 hw7.mcmc2 <- function(y, z, 
-                     alpha.p = .01, beta.p = .03, 
+                     alpha.p = .5, beta.p = 1.5, 
                      alpha.psi = .01, beta.psi = .005, 
                      mu0 = 1.6, s20 = .0625,
                      a.sigma = 3, b.sigma = 1,
                      d.tune = .8, r.tune = .8,
-                     a.lambda = .008, b.lambda = .2,
+                     a.lambda = 10, b.lambda = 250,
                      n.mcmc = 1e4) {
   
   ###
@@ -65,13 +65,17 @@ hw7.mcmc2 <- function(y, z,
   mu_r.save = numeric(n.mcmc)
   s2_r.save = numeric(n.mcmc)
   lambda.save = numeric(n.mcmc)
+  r.mh.prop = c(0,0)
+  d.mh.prop = c(0,0)
   
   ###
   ### Start MCMC
   ###
-  
+  t1 = Sys.time()
   for(k in seq_len(n.mcmc)) {
-    #print(k)
+    if(k %% 1e4 == 0) {
+      print(paste(k, Sys.time() - t1))
+    }
     ###
     ### update p
     ###
@@ -107,6 +111,8 @@ hw7.mcmc2 <- function(y, z,
     })
     updates = valid.r[which(log(runif(length(valid.r))) < mh.cuts)]
     r[updates] = r.prop[updates]
+    r.mh.prop[1] = r.mh.prop[1] + length(updates)
+    r.mh.prop[2] = r.mh.prop[2] + sum(valid.r)
     
     ###
     ### update mu_r
@@ -142,6 +148,8 @@ hw7.mcmc2 <- function(y, z,
     })
     updates = valid.d[which(log(runif(length(valid.d))) < mh.cuts)]
     d[updates] = d.prop[updates]
+    d.mh.prop[1] = d.mh.prop[1] + length(updates)
+    d.mh.prop[2] = d.mh.prop[2] + sum(valid.d)
     
     p.save[k] = p
     psi.save[k] = psi
@@ -159,6 +167,8 @@ hw7.mcmc2 <- function(y, z,
               lambda.save = lambda.save,
               mu_r.save = mu_r.save,
               s2_r.save = s2_r.save,
+              r.mh.prop = r.mh.prop,
+              d.mh.prop = d.mh.prop,
               n.mcmc = n.mcmc))
   
 }

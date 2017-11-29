@@ -134,11 +134,11 @@ z = t(sapply(brands, function(brand) {
 
 source("./hw7_mcmc_lessMH.R")
 
-n.mcmc <- 5e6
+n.mcmc <- 5e5
 
 out = hw7.mcmc2(y, z, n.mcmc = n.mcmc, r.tune = .1, d.tune = .15,
-                alpha.p = 1, beta.p = 3, alpha.psi = 4, beta.psi = 2,
-                a.lambda = 10, b.lambda = 250)
+                alpha.p = 1, beta.p = 3, alpha.psi = 2, beta.psi = 2,
+                a.lambda = 1, b.lambda = 25)
 
 n.burn <- .5*n.mcmc
 
@@ -148,7 +148,7 @@ out$r.mh.prop[1] / out$r.mh.prop[2]
 plot(out$p.save[-(1:n.burn)], type = "l")
 plot(out$psi.save[-(1:n.burn)], type = "l")
 plot(out$r.save[100,], type = "l")
-plot(out$d.save[4,], type = "l")
+plot(out$d.save[2,], type = "l")
 plot(out$lambda.save[-(1:n.burn)], type = "l")
 
 library(ggplot2)

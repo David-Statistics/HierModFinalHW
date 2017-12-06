@@ -1,8 +1,9 @@
 hw7.mcmc <- function(y, z, 
-                     p.tune = .01, alpha.p = 1, beta.p = 1, 
-                     psi.tune = .01, alpha.psi = 1, beta.psi = 1, 
+                     alpha.p = 1.5, beta.p = 4.5, 
+                     alpha.psi = 2, beta.psi = 2, 
+                     mu0 = 1.6, s20 = .0625,
+                     a.sigma = 3, b.sigma = 1,
                      d.tune = .8, r.tune = .8,
-                     mu0 = 1.5, s0 = .2, a = 1, b = 10,
                      n.mcmc = 1e4) {
   
   ###
@@ -13,95 +14,82 @@ hw7.mcmc <- function(y, z,
   # z = seen at all 
   
   
-  # starting values for number recruited
+  # starting values for time until recruitment
   r = apply(y, 1, function(x) {
     if(sum(x) > 0) {
-      return(which(x > 0)[1] - abs(rnorm(1,0,r.tune)))
+      return(which(x > 0)[1] - 1 - abs(rnorm(1,0,.1)))
     } 
-    return(18)
+    return(17)
   })
   
-  # starting values for number dead/alive?? 
+  # starting values for time until death
   d = apply(z, 1, function(x) {
     if(sum(x) > 0) {
-      return(max(which(x > 0)) + abs(rnorm(1,0,.1)))
+      return(max(which(x > 0)) - 1 + abs(rnorm(1,0,.1)))
     }
-    return(1)
+    return(0)
   })
   
   
-  # how many years we saw each individual with a pup
+  # how many years each individual was seen with a pup
   rs.y = rowSums(y)
   
-  # how many times we saw each individual
+  # how many years each individual was seen
   rs.z = rowSums(z)
   
-  # first year we saw each invdividual with a pup
+  # first year we saw a pup for each individual
   max.r = ceiling(r)
-  r[rowSums(y) == 0] = 1
+  r[rowSums(y) == 0] = 1 
   
-  # last year we saw each invidivual
+  # last year we saw each individual
   min.d = floor(d)
   
-  p = .01
-  psi = .01
+  # total pups
+  n.pups = sum(y)
+  
+  # total sightings
+  n.sightings = sum(z)
+  
+  p = .1
+  psi = .1
+  n = length(d)
+  mu_r = mu0
+  s2_r = a.sigma/b.sigma
+  s_r = sqrt(s2_r)
   
   p.save = numeric(n.mcmc)
   psi.save = numeric(n.mcmc)
   r.save = matrix(0, nrow = length(r), ncol = n.mcmc)
   d.save = matrix(0, nrow = length(d), ncol = n.mcmc)
-  lambda.save = numeric(n.mcmc)
-  
-  
-  # for mh acceptance ratio
-  kp = 1
-  kpsi = 1
-  
+  mu_r.save = numeric(n.mcmc)
+  s2_r.save = numeric(n.mcmc)
+  r.mh.prop = c(0,0)
+  d.mh.prop = c(0,0)
   
   ###
   ### Start MCMC
   ###
-  
+  t1 = Sys.time()
   for(k in seq_len(n.mcmc)) {
-    #print(k)
+    if(k %% 1e4 == 0) {
+      print(paste(k, Sys.time() - t1))
+    }
     ###
     ### update p
     ###
     
+    # count the number of years between r_i and d_i
     n.avail.years = sapply(seq_along(r), function(i) {
       length(ceiling(r[i]):floor(d[i]))
     })
     
-    p.prop <- rnorm(1, p, p.tune)
-    if(p.prop > 0 & p.prop < 1) {
-      mh.num <- sum(dbinom(rs.y, n.avail.years, p.prop, log = TRUE)) +
-        dbeta(p.prop, alpha.p, beta.p, log = TRUE)
-      mh.den <- sum(dbinom(rs.y, n.avail.years, p, log = TRUE)) +
-        dbeta(p, alpha.p, beta.p, log = TRUE)
-      if(log(runif(1)) < mh.num - mh.den) {
-        p = p.prop
-        kp = kp + 1
-      }
-    }
-    
-    
+    p = rbeta(1, alpha.p + n.pups, beta.p + sum(n.avail.years) - n.pups)
     
     ###
     ###  update psi
     ###
     
-    psi.prop <- rnorm(1, psi, psi.tune)
-    if(psi.prop > 0 & psi.prop < 1) {
-      mh.num <- sum(dbinom(rs.z, floor(d) - 1, psi.prop, log = TRUE)) +
-        dbeta(psi.prop, alpha.psi, beta.psi, log = TRUE)
-      mh.den <- sum(dbinom(rs.z, floor(d) - 1, psi, log = TRUE)) +
-        dbeta(psi, alpha.psi, beta.psi, log = TRUE)
-      if(log(runif(1)) < mh.num - mh.den) {
-        psi = psi.prop
-        kpsi = kpsi + 1
-      }
-    }
-    
+    psi = rbeta(1, alpha.psi + n.sightings, beta.psi + sum(floor(d)) - n.sightings)
     
     ###
     ### update r
@@ -114,49 +102,59 @@ hw7.mcmc <- function(y, z,
       length(ceiling(r.prop[i]):floor(d[i]))
     })
     mh.cuts = sapply(valid.r, function(i) {
-      dbinom(rs.y[i], n.avail.years.prop[i], p, log = TRUE) +
-        dlnorm(r.prop[i], mu0, s0, log = TRUE) -
-        dbinom(rs.y[i], n.avail.years[i], p, log = TRUE) -
-        dlnorm(r[i], mu0, s0, log = TRUE)
+      dbinom(rs.y[i], min(18, n.avail.years.prop[i]), p, log = TRUE) +
+        dlnorm(r.prop[i], mu_r, s_r, log = TRUE) -
+        dbinom(rs.y[i], min(18, n.avail.years[i]), p, log = TRUE) -
+        dlnorm(r[i], mu_r, s_r, log = TRUE)
     })
     updates = valid.r[which(log(runif(length(valid.r))) < mh.cuts)]
     r[updates] = r.prop[updates]
+    r.mh.prop[1] = r.mh.prop[1] + length(updates)
+    r.mh.prop[2] = r.mh.prop[2] + length(valid.r)
     
     ###
-    ### update lambda
+    ### update mu_r
     ###
     
-    lambda = rgamma(1, a + length(d), b + sum(d))
+    mu_r = rnorm(1, (s2_r * mu0 + s20*sum(log(r)))/(s2_r+n*s20), 
+                 sqrt(s2_r*s20/(s2_r+n*s20)))
     
     ###
-    ### update d
+    ### update s2_r
     ###
+    
+    s2_r = 1/rgamma(1,n/2 + a.sigma, rate = sum((log(r) - mu_r)^2)/2 + 1/b.sigma)
+    s_r = sqrt(s2_r)
     
     d.prop = d + rnorm(length(d), 0, d.tune)
-    valid.d = which(d.prop > min.d & d.prop > 0 & d.prop > r)
+    valid.d = which(d.prop > min.d)
     mh.cuts = sapply(valid.d, function(i) {
-      dbinom(rs.z[i], floor(d.prop[i]), psi, log = TRUE) +
-        dexp(d.prop[i], lambda, log = TRUE) -
-        dbinom(rs.z[i], floor(d[i]), psi, log = TRUE) -
-        dexp(d[i], lambda, log = TRUE)
+      dbinom(rs.z[i], min(18, floor(d.prop[i])), psi, log = TRUE) +
+        log(.2*dnorm(d.prop[i], 25, 3) + .8*dexp(d.prop[i],1/8)) -
+        dbinom(rs.z[i], min(18, floor(d[i])), psi, log = TRUE) -
+        log(.2*dnorm(d[i], 25, 3) + .8*dexp(d[i],1/8))
     })
     updates = valid.d[which(log(runif(length(valid.d))) < mh.cuts)]
     d[updates] = d.prop[updates]
+    d.mh.prop[1] = d.mh.prop[1] + length(updates)
+    d.mh.prop[2] = d.mh.prop[2] + length(d)
     
     p.save[k] = p
     psi.save[k] = psi
     r.save[,k] = r
     d.save[,k] = d
-    lambda.save[k] = lambda
+    mu_r.save[k] = mu_r
+    s2_r.save[k] = s2_r
   }
   
   return(list(p.save = p.save,
               psi.save = psi.save,
               r.save = r.save,
               d.save = d.save,
-              lambda.save = lambda.save,
-              n.mcmc = n.mcmc,
-              kp = kp/n.mcmc, 
-              kpsi = kpsi/n.mcmc))
+              mu_r.save = mu_r.save,
+              s2_r.save = s2_r.save,
+              r.mh.prop = r.mh.prop,
+              d.mh.prop = d.mh.prop,
+              n.mcmc = n.mcmc))
   
 }

@@ -32,21 +32,20 @@ z = t(sapply(brands, function(brand) {
 ## view output
 
 source("./hw7_mcmc_lessMH.R")
-
+set.seed(1215)
 n.mcmc <- 5e4
 
-out = hw7.mcmc2(y, z, n.mcmc = n.mcmc, r.tune = .5, d.tune = 3,
-                alpha.p = 1, beta.p = 3, alpha.psi = 2, beta.psi = 2)
+out = hw7.mcmc(y, z, n.mcmc = n.mcmc, r.tune = .5, d.tune = 3,
+                alpha.p = 1.5, beta.p = 4.5, alpha.psi = 2, beta.psi = 2)
 
-#out = readRDS("./data/results.2.rds")
-n.burn <- .5*n.mcmc
+n.burn <- .1*n.mcmc
 
 out$d.mh.prop[1] / out$d.mh.prop[2]
 out$r.mh.prop[1] / out$r.mh.prop[2]
 
 plot(out$p.save[(n.burn+1):n.mcmc], type = "l")
 plot(out$psi.save[(n.burn+1):n.mcmc], type = "l")
-plot(out$r.save[100,(n.burn+1):n.mcmc], type = "l")
+plot(out$r.save[2,(n.burn+1):n.mcmc], type = "l")
 plot(out$d.save[4,(n.burn+1):n.mcmc], type = "l", main = "last seen year 0")
 plot(out$d.save[2,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 17')
 plot(out$d.save[7,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 6')
@@ -54,14 +53,18 @@ plot(out$d.save[38,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 3')
 plot(out$d.save[114,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 2')
 plot(out$d.save[100,(n.burn+1):n.mcmc], type = "l", main = "last seen year 1")
 
-library(ggplot2)
+cut.point = 6
+supp = seq(0,40,.01)
+dens = .2*dnorm(supp, 25, 3) + .8*dexp(supp, 1/8)
+const = 1-.2*pnorm(cut.point, 25, 3) -.8*pexp(cut.point, 1/8)
+hist(out$d.save[7,(n.burn+1):n.mcmc], freq = FALSE, breaks = 100)
+lines(supp, dens, type = 'l', lwd = 2)
 
-plot.dat = data.frame(individual = sort(rep(1:nrow(y), n.mcmc - n.burn)),
-                      r = as.vector(t(out$r.save)))
-ggplot(plot.dat, aes(x=factor(individual), y=r)) + 
-  geom_violin()
-
-
-# still takes awhile to burn in - may be able to change that if we mess around with 
-# the tuning parameters.
-
+res = c(mean(out$p.save[(n.burn+1):n.mcmc]), 
+        quantile(out$p.save[(n.burn+1):n.mcmc], c(.025, .975)))
+res = rbind(res, 
+            c(mean(out$psi.save[(n.burn+1):n.mcmc]), 
+              quantile(out$psi.save[(n.burn+1):n.mcmc], c(.025, .975))))
+rownames(res) = c("p", "psi")
+colnames(res) = c("Posterior Mean", "95% CI Lower", "95% CI Upper")
+res

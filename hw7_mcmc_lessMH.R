@@ -18,17 +18,17 @@ hw7.mcmc2 <- function(y, z,
   # starting values for time until recruitment
   r = apply(y, 1, function(x) {
     if(sum(x) > 0) {
-      return(which(x > 0)[1] - abs(rnorm(1,0,r.tune)))
+      return(which(x > 0)[1] - 1 - abs(rnorm(1,0,.1)))
     } 
-    return(18)
+    return(17)
   })
   
   # starting values for time until death
   d = apply(z, 1, function(x) {
     if(sum(x) > 0) {
-      return(max(which(x > 0)) + abs(rnorm(1,0,.1)))
+      return(max(which(x > 0)) - 1 + abs(rnorm(1,0,.1)))
     }
-    return(1)
+    return(0)
   })
   
   
@@ -53,6 +53,7 @@ hw7.mcmc2 <- function(y, z,
   
   p = .1
   psi = .1
+  lambda = .04
   n = length(d)
   mu_r = mu0
   s2_r = a.sigma/b.sigma
@@ -112,7 +113,7 @@ hw7.mcmc2 <- function(y, z,
     updates = valid.r[which(log(runif(length(valid.r))) < mh.cuts)]
     r[updates] = r.prop[updates]
     r.mh.prop[1] = r.mh.prop[1] + length(updates)
-    r.mh.prop[2] = r.mh.prop[2] + sum(valid.r)
+    r.mh.prop[2] = r.mh.prop[2] + length(valid.r)
     
     ###
     ### update mu_r
@@ -132,24 +133,72 @@ hw7.mcmc2 <- function(y, z,
     ### update lambda
     ###
     
-    lambda = rgamma(1, a.lambda + length(d), b.lambda + sum(d))
+    #lambda = rgamma(1, a.lambda + length(d), b.lambda + sum(d))
+    # lambda.prop = rnorm(1, lambda, .005)
+    # mh.num = sum(dexp(d, lambda.prop, log = TRUE)) + 
+    #   dgamma(lambda.prop, a.lambda, b.lambda, log = TRUE)
+    # mh.den = sum(dexp(d, lambda, log = TRUE)) + 
+    #   dgamma(lambda, a.lambda, b.lambda, log = TRUE)
+    # if(log(runif(1)) < mh.num - mh.den) {
+    #   lambda = lambda.prop
+    # }
+    
+    ###
+    ### d.mu
+    ###
+    
+    # d.mu.prop = rnorm(1, d.mu, .5)
+    # mh.num = sum(dnorm(d, d.mu.prop, d.s, log = TRUE)) +
+    #   dnorm(d.mu.prop, 25, 2)
+    # mh.den = sum(dnorm(d, d.mu, d.s, log = TRUE)) +
+    #   dnorm(d.mu, 25, 2)
+    
+    ###
+    ### d.s2
+    ###
+    
+    # d.s2.prop = rnorm(1, d.s2, 1)
+    # if(d.s2.prop > 0) {
+    #   mh.num = sum(dnorm(d, d.mu, d.s2.prop, log = TRUE)) +
+    #     (d.mu.prop, 25, 2)
+    #   mh.den = sum()
+    # }
+    
     
     ###
     ### update d
     ###
     
+    # d.prop = d + rnorm(length(d), 0, d.tune)
+    # valid.d = which(d.prop > min.d & d < 40)
+    # mh.cuts = sapply(valid.d, function(i) {
+    #   dbinom(rs.z[i], min(18, floor(d.prop[i])), psi, log = TRUE) +
+    #     dexp(d.prop[i], lambda, log = TRUE) -
+    #     dbinom(rs.z[i], min(18, floor(d[i])), psi, log = TRUE) -
+    #     dexp(d[i], lambda, log = TRUE)
+    # })
+    # updates = valid.d[which(log(runif(length(valid.d))) < mh.cuts)]
+    # d[updates] = d.prop[updates]
+    # d.mh.prop[1] = d.mh.prop[1] + length(updates)
+    # d.mh.prop[2] = d.mh.prop[2] + sum(valid.d)
+    
     d.prop = d + rnorm(length(d), 0, d.tune)
-    valid.d = which(d.prop > min.d & d.prop > 0 & d.prop > r)
+    #d.prop = rnorm(length(d), 25, 3)
+    #exp.inds = sapply(1:length(d), FUN = function(i) rbinom(1, 1, .5)) == 1
+    #d.prop[exp.inds] = rexp(sum(exp.inds), 2)
+    valid.d = which(d.prop > min.d)
     mh.cuts = sapply(valid.d, function(i) {
       dbinom(rs.z[i], min(18, floor(d.prop[i])), psi, log = TRUE) +
-        dexp(d.prop[i], lambda, log = TRUE) -
+        #log(.5*dnorm(d.prop[i], 25, 5) + 5*dnorm(d.prop[i], 1.5, .75)) -
+        log(.5*dnorm(d.prop[i], 25, 3) + .5*dexp(d.prop[i],1/4)) -
         dbinom(rs.z[i], min(18, floor(d[i])), psi, log = TRUE) -
-        dexp(d[i], lambda, log = TRUE)
+        #log(.5*dnorm(d[i], 25, 5) + 5*dnorm(d[i], 1.5, .75))
+        log(.5*dnorm(d[i], 25, 3) + .5*dexp(d[i],1/4))
     })
     updates = valid.d[which(log(runif(length(valid.d))) < mh.cuts)]
     d[updates] = d.prop[updates]
     d.mh.prop[1] = d.mh.prop[1] + length(updates)
-    d.mh.prop[2] = d.mh.prop[2] + sum(valid.d)
+    d.mh.prop[2] = d.mh.prop[2] + length(d)
     
     p.save[k] = p
     psi.save[k] = psi

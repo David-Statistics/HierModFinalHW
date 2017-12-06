@@ -134,27 +134,31 @@ z = t(sapply(brands, function(brand) {
 
 source("./hw7_mcmc_lessMH.R")
 
-n.mcmc <- 5e5
+n.mcmc <- 5e4
 
-out = hw7.mcmc2(y, z, n.mcmc = n.mcmc, r.tune = .1, d.tune = .15,
-                alpha.p = 1, beta.p = 3, alpha.psi = 2, beta.psi = 2,
-                a.lambda = 1, b.lambda = 25)
+out = hw7.mcmc2(y, z, n.mcmc = n.mcmc, r.tune = .5, d.tune = 3,
+                alpha.p = 1, beta.p = 3, alpha.psi = 2, beta.psi = 2)
 
+#out = readRDS("./data/results.2.rds")
 n.burn <- .5*n.mcmc
 
 out$d.mh.prop[1] / out$d.mh.prop[2]
 out$r.mh.prop[1] / out$r.mh.prop[2]
 
-plot(out$p.save[-(1:n.burn)], type = "l")
-plot(out$psi.save[-(1:n.burn)], type = "l")
-plot(out$r.save[100,], type = "l")
-plot(out$d.save[2,], type = "l")
-plot(out$lambda.save[-(1:n.burn)], type = "l")
+plot(out$p.save[(n.burn+1):n.mcmc], type = "l")
+plot(out$psi.save[(n.burn+1):n.mcmc], type = "l")
+plot(out$r.save[100,(n.burn+1):n.mcmc], type = "l")
+plot(out$d.save[4,(n.burn+1):n.mcmc], type = "l", main = "last seen year 0")
+plot(out$d.save[2,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 17')
+plot(out$d.save[7,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 6')
+plot(out$d.save[38,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 3')
+plot(out$d.save[114,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 2')
+plot(out$d.save[100,(n.burn+1):n.mcmc], type = "l", main = "last seen year 1")
 
 library(ggplot2)
 
 plot.dat = data.frame(individual = sort(rep(1:nrow(y), n.mcmc - n.burn)),
-                      r = as.vector(out$r.save))
+                      r = as.vector(t(out$r.save)))
 ggplot(plot.dat, aes(x=factor(individual), y=r)) + 
   geom_violin()
 

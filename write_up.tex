@@ -47,10 +47,9 @@ The prior distribution for $d_i$ is proportional to an 80/20 mixture of an expon
 
 We chose the prior hyperparameters for $\mu_r$ and $\sigma_r^2$ based off recent research on South American sea lions. In a study by Grandi et al, researchers estimated that female South American sea lions reach sexual maturity around 4.8 $\pm$ 0.5 years \cite{Grandi}. We believed California sea lions would mature at a similar age and therefore let $\mu_0 = 1.6$ and $\sigma_0^2 = .0625$, roughly corresponding to an average recruitment time of 5 years and allowing for moderate variation around this mean. We let $\alpha_{\sigma} = 3$ and $\beta_{\sigma} = 1$ so the expected variation in $\log(r_i)$ is E$[\sigma_r^2] = 0.5$ and Var$[\sigma_r^2] = 0.25$. This allows individual recruitment times to have reasonable variability around the mean. 
 
-We set the prior hyperparameters for $p$ as $\alpha_p = 1.5$ and $\beta_p = 4.5$. Then E$[p] = .25$, with a fair amount of uncertainty around this mean. This reflects the idea that we do not have a great deal of information regarding $p$, but we believe $p$ may be relatively low since not all fertile sea lions reproduce and mothers may be spotted without their pups. We set the hyperparameters for $\psi$ as $\alpha_{\psi} = 2$ and $\beta_{\psi} = 2$. This corresponds to E$[\psi] = .5$, with most mass centered around .5 and much less mass near the tails at 0 and 1. This reflects the idea that we believe $\psi$ is likely to be higher than $p$, but we still have little information regarding this parameter.  
+We set the prior hyperparameters for $p$ as $\alpha_p = 1.5$ and $\beta_p = 4.5$. Then E$[p] = .25$, with a fair amount of uncertainty around this mean. This reflects the idea that we do not have a great deal of information regarding $p$, but we believe $p$ may be relatively low since not all fertile sea lions reproduce and mothers may be spotted without their pups. We set the hyperparameters for $\psi$ as $\alpha_{\psi} = 2$ and $\beta_{\psi} = 2$. This corresponds to E$[\psi] = .5$, with most mass centered around .5 and much less mass near 0 and 1. This reflects the idea that we believe $\psi$ is likely to be higher than $p$, but we still have little information regarding this parameter.  
 
 \section{Posterior Distribution}
-
 \begin{eqnarray*}
 [\log (\mathbf{r}), \mu_r, p, \mathbf{d}, \lambda, \psi | \mathbf{z}, \mathbf{y} ] & \propto & \prod_{i=1}^n \prod_{t=1} ^T  1\{r_i \leq d_i \} [y_{it}|p,r_i]^{1\{ t > r_i \}} 1^{1\{ t \leq r_i \}} [z_{it}|\psi, d_i]^{1 \{ t \leq d_i\} } 1^{1 \{ t > d_i\}} \\
   & \times & [\log(r_i)|\mu_r][d_i|\lambda]  [\mu_r][\lambda][p][\psi]
@@ -62,10 +61,6 @@ We set the prior hyperparameters for $p$ as $\alpha_p = 1.5$ and $\beta_p = 4.5$
 We derived the full conditionals for $p$, $\psi$, $\mu_r$, and $\sigma_r^2$ (Appendix) and updated those parameters with a Gibbs sampler. We updated $\mathbf{d}, \mathbf{r}$, and with Metropolis-Hastings. We ran the MCMC algorithm for 100,000 iterations with a burn-in period of 50,000. Resulting trace plots showed thorough mixing and convergence of parameters . 
 
 \section{Results}
-
-Model is closed in space but the data are not. $d_i$ ideally is lifetime, but practically is the time of leaving the system. 
-
-How do we want to present results. 
 
 \begin{table}[ht]
 \centering
@@ -85,10 +80,19 @@ How do we want to present results.
 \caption{Posterior distribution on $d$ for individuals which we last saw in certain years.}
 \end{figure}
 
-Next steps: use within year data to inform detection.
-
 \section{Inference}
 
+Ideally, the parameter $d_i$ represents the lifetime of individual $i$, but practically it represents the time the individual left the population, which could be due to death or emigration. Future research could address this issue by also modeling the probability of emigration using some sort of spatial tracking mechanism. 
+
+Our model predicts varying times for $d_i$ based on the last time the individual $i$ was observed in the study period. For individuals not observed after the first few years, the estimated time in the population tended to relatively low, with most mass below 10 years. For individuals observed later into the study, the estimated time in the system tended to be dominated by the prior distribution, and the posterior mass was concentrated around 25 years. If an individual was only observed in the first few years of the study, it may be due to the fact that it was simply never detected, but our posterior distribution reflects substantial probability that the individual actually left the system. Due to strong prior information that the expected life time for California sea lions is around 20-30 years, individuals that were observed late into the study period had a high posterior probability of remaining in the system for 20-30 years. 
+
+The parameter $\psi$ denotes the probability of detecting an individual assuming she was alive and at the site. Our posterior mean for $\psi$ is $0.27 (95\% CI: [.25, .30])$. 
+
+The parameter $p$ is a complex parameter in this model. It assumes an individual is alive, parous, and at the site and includes the probability of a parous female having a pup and of the researchers observing her with her pup. The posterior mean for $p$ is $0.12 (95\% CI: [.10, 13])$. This relatively low detection probability is not surprising given there are many reasons that an individual with a pup may not be detected with her pup. Not long after birth, sea lion mothers tend to leave their pups to hunt, so it is possible to detect a sea lion without her pup even if she had a pup in that year. Furthermore, not all parous females have pups ever year, and this probability is included in $p$. 
+
+The data from this research study also included repeated sightings within a year. This model could be improved upon by utilizing the within-year sightings to inform the detection probabilities $p$ and $\psi$. 
+
+Our posterior distributions for $r_i$, the time until individual $i$ became parous, were not substantially different across individuals that were last sighted at different times.  The posterior means for $r_i$ were typically between 0.243 and 2.004 years. Based on prior information that sea lions typically become parous around 4-5 years, our model is under-estimating this parameter. This is likely due to the low probability of detecting an individual with her pup and the constraint that $r_i < d_i$. This constraint might be relaxed in the future, since an individual may in fact die or leave the population before she ever becomes parous. In this case we would have $d_i < r_i$, where $r_i$ is the theoretical time at which the individual would have become parous if she had lived or remained in the population long enough. 
 
 
 

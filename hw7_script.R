@@ -53,12 +53,34 @@ plot(out$d.save[38,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 3')
 plot(out$d.save[114,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 2')
 plot(out$d.save[100,(n.burn+1):n.mcmc], type = "l", main = "last seen year 1")
 
-cut.point = 6
+d = apply(z, 1, function(x) {
+  if(sum(x) > 0) {
+    return(max(which(x > 0)) - 1 + abs(rnorm(1,0,.1)))
+  }
+  return(0)
+})
+min.d = floor(d)
+
+png("Posterior.d.png", width = 480, height = 680)
+cut.points = c(0,1,2,3,4,5,10,15,17)
 supp = seq(0,40,.01)
 dens = .2*dnorm(supp, 25, 3) + .8*dexp(supp, 1/8)
-const = 1-.2*pnorm(cut.point, 25, 3) -.8*pexp(cut.point, 1/8)
-hist(out$d.save[7,(n.burn+1):n.mcmc], freq = FALSE, breaks = 100)
-lines(supp, dens, type = 'l', lwd = 2)
+par(mfrow = c(3,3), oma = c(2,0,0,0))
+for(k in seq_along(cut.points)) {
+  cut.point = cut.points[k]
+  inds = which(min.d == cut.point)
+  const = 1-.2*pnorm(cut.point, 25, 3) -.8*pexp(cut.point, 1/8)
+  plot(density(as.vector(out$d.save[inds,(n.burn+1):n.mcmc])), breaks = 100, lwd = 2,
+       main = paste("Individuals Last Seen at", cut.point, "years"), xlab = "d")
+  lines(supp[supp > cut.point], dens[supp > cut.point]/const, type = 'l', lwd = 2,
+        col = 'grey50')
+  #legend("topright", legend = c("Posterior", "Prior"), col = c("black", "grey50"), lwd = c(2,2))
+}
+par(xpd=NA)
+#legend(locator(1), legend=as.numeric(levels(factor(mtcars$cyl))), pch=19, col= as.numeric(levels(factor(mtcars$cyl))) )
+legend(x=5.6, y=690, legend=c("Posterior", "Prior"), lwd=c(2,2), col= c("black", "grey50"))
+dev.off()
+
 
 res = c(mean(out$p.save[(n.burn+1):n.mcmc]), 
         quantile(out$p.save[(n.burn+1):n.mcmc], c(.025, .975)))

@@ -31,7 +31,7 @@ z = t(sapply(brands, function(brand) {
 
 ## view output
 
-source("./hw7_mcmc_lessMH.R")
+source("./hw7_mcmc.R")
 set.seed(1215)
 n.mcmc <- 5e4
 

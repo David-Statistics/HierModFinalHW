@@ -45,7 +45,7 @@ out$r.mh.prop[1] / out$r.mh.prop[2]
 
 plot(out$p.save[(n.burn+1):n.mcmc], type = "l")
 plot(out$psi.save[(n.burn+1):n.mcmc], type = "l")
-plot(out$r.save[2,(n.burn+1):n.mcmc], type = "l")
+plot(out$r.save[4,(n.burn+1):n.mcmc], type = "l")
 plot(out$d.save[4,(n.burn+1):n.mcmc], type = "l", main = "last seen year 0")
 plot(out$d.save[2,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 17')
 plot(out$d.save[7,(n.burn+1):n.mcmc], type = "l", main = 'last seen year 6')
@@ -61,7 +61,6 @@ d = apply(z, 1, function(x) {
 })
 min.d = floor(d)
 
-png("Posterior.d.png", width = 480, height = 680)
 cut.points = c(0,1,2,3,4,5,10,15,17)
 supp = seq(0,40,.01)
 dens = .2*dnorm(supp, 25, 3) + .8*dexp(supp, 1/8)
@@ -74,14 +73,21 @@ for(k in seq_along(cut.points)) {
        main = paste("Individuals Last Seen at", cut.point, "years"), xlab = "d")
   lines(supp[supp > cut.point], dens[supp > cut.point]/const, type = 'l', lwd = 2,
         col = 'grey50')
-  #legend("topright", legend = c("Posterior", "Prior"), col = c("black", "grey50"), lwd = c(2,2))
 }
 par(xpd=NA)
-#legend(locator(1), legend=as.numeric(levels(factor(mtcars$cyl))), pch=19, col= as.numeric(levels(factor(mtcars$cyl))) )
-legend(x=5.6, y=690, legend=c("Posterior", "Prior"), lwd=c(2,2), col= c("black", "grey50"))
-dev.off()
+legend(x = -117, y = -.5, legend=c("Posterior", "Prior"), lwd=c(2,2), col= c("black", "grey50"))
+
+par(mfrow = c(3,3))
+for(k in seq_along(cut.points)) {
+  #cut.point = cut.points[k]
+  inds = which(min.d == cut.point)
+  #const = 1-.2*pnorm(cut.point, 25, 3) -.8*pexp(cut.point, 1/8)
+  plot(density(as.vector(out$r.save[inds,(n.burn+1):n.mcmc])), breaks = 100, lwd = 2,
+       main = paste("Individuals Last Seen at", cut.point, "years"), xlab = "r")
+}
 
 
+library(xtable)
 res = c(mean(out$p.save[(n.burn+1):n.mcmc]), 
         quantile(out$p.save[(n.burn+1):n.mcmc], c(.025, .975)))
 res = rbind(res, 
@@ -89,4 +95,4 @@ res = rbind(res,
               quantile(out$psi.save[(n.burn+1):n.mcmc], c(.025, .975))))
 rownames(res) = c("p", "psi")
 colnames(res) = c("Posterior Mean", "95% CI Lower", "95% CI Upper")
-res
+print(xtable(res))

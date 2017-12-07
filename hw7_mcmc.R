@@ -127,7 +127,7 @@ hw7.mcmc <- function(y, z,
     s_r = sqrt(s2_r)
     
     d.prop = d + rnorm(length(d), 0, d.tune)
-    valid.d = which(d.prop > min.d)
+    valid.d = which(d.prop > min.d & d.prop > r)
     mh.cuts = sapply(valid.d, function(i) {
       dbinom(rs.z[i], min(18, floor(d.prop[i])), psi, log = TRUE) +
         log(.2*dnorm(d.prop[i], 25, 3) + .8*dexp(d.prop[i],1/8)) -

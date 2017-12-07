@@ -30,22 +30,24 @@ y_{it} & \sim & \begin{cases} 0 & , t \leq r_i \\
 \text{Bern}(p) & , t > r_i \end{cases} \\
 z_{it} & \sim & \begin{cases} 0 & , t > d_i \\
 \text{Bern}(\psi) & , t \leq d_i \end{cases} \\
+f &=& (.8)*\frac{1}{8} \exp(-\frac{x}{8}) + (.2)*\frac{1}{3\sqrt{2\pi}} \exp \left(-\frac{1}{18} (x - 25)^2 \right) \\
+d_i & \propto & f * 1_{(d_i > t_i^*)} \\
 \log(r_i) & \sim & \text{N}(\mu_r, \sigma_r^2) \\
-d_i & \sim & \exp(\lambda) \\
 \mu_r & \sim & \text{N}(\mu_0, \sigma_0^2) \\
 \sigma_r^2 & \sim & \text{IG}(\alpha_{\sigma}, \beta_{\sigma}) \\
-\lambda & \sim & \text{Gamma}(\alpha_{\lambda}, \beta_{\lambda}) \\
 p & \sim & \text{Beta}(\alpha_p, \beta_p) \\
 \psi & \sim & \text{Beta}(\alpha_{\psi}, \beta_{\psi} )\\
 \end{eqnarray*}
-where $y_{it}$ indicates if individual $i$ was observed with a pup in year $t$, $z_{it}$ indicates if individual $i$ was observed in year $t$, $p$ is the probability of detecting an individual with her pup given that she was alive and parous, $\psi$ is the probability of detecting an individual given that she was alive, $r_i$ is the recruitment time for individual $i$, and $d_i$ is the lifetime for individual $i$. 
+where $y_{it}$ indicates if individual $i$ was observed with a pup in year $t$, $z_{it}$ indicates if individual $i$ was observed in year $t$. The parameter $d_i$ denotes time until individual $i$ left the population. This could be due to either death or emigration. The constant $t_i^*$ denotes the last time individual $i$ was observed in the study. The parameter $r_i$ denotes the time until individual $i$ became parous.
+The probability of an individual being detected with her pup assuming she was alive, at the site, and parous is denoted $p$. Therefore, $p$ includes both the probability that a parous female had a pup and that she was observed alongside her pup. The probability of detecting an individual given that she was alive and at the site is given by $\psi$. 
 
 \section{Prior Specification}
-$\indent$ The parameter $\lambda$ reflects the inverse of the average lifetime for California sea lions. Previous research estimates sea lion life expectancy to be around 20-30 years \cite{NOAA}. We let $\alpha_{\lambda} = 4$ and $\beta_{\lambda} = 100$, corresponding to E$(\lambda) = .04$ and Var$(\lambda) = .004$. Thus the expected lifetime is 25 years, with most of the mass falling near the mean, but allowing for individual lifetimes to vary substantially. 
+
+The prior distribution for $d_i$ is proportional to an 80/20 mixture of an exponential distribution with mean 8 and a normal distribution with mean 25 and variance 9. According to previous research studying age-specific survival rates of California sea lions \cite{Hernandez}, the probability of a young female sea lion surviving the first year of life ranges from .558 to .998. After the first year, the probability of survival from year $t$ to year $t+1$ is roughly 0.9 \cite{Hernandez}. Our prior specification for $d_i$ emulates this prior knowledge. The prior probability of survival to year 1 is 0.705, to year 4 is .485, and to year 10 is .43. This reflects lower survival probabilities for young and old individuals and higher survival probabilities for middle-aged individuals. We include in our prior distribution on $d_i$ the fact that if an individual $i$ was last seen at time $t_i^*$, then $d_i$ must be greater than $t_i^*$. 
 
 We chose the prior hyperparameters for $\mu_r$ and $\sigma_r^2$ based off recent research on South American sea lions. In a study by Grandi et al, researchers estimated that female South American sea lions reach sexual maturity around 4.8 $\pm$ 0.5 years \cite{Grandi}. We believed California sea lions would mature at a similar age and therefore let $\mu_0 = 1.6$ and $\sigma_0^2 = .0625$, roughly corresponding to an average recruitment time of 5 years and allowing for moderate variation around this mean. We let $\alpha_{\sigma} = 3$ and $\beta_{\sigma} = 1$ so the expected variation in $\log(r_i)$ is E$[\sigma_r^2] = 0.5$ and Var$[\sigma_r^2] = 0.25$. This allows individual recruitment times to have reasonable variability around the mean. 
 
-We set the prior hyperparameters for $p$ as $\alpha_p = 1.5$ and $\beta_p = 4.5$. Then E$[p] = .25$, with a fair amount of uncertainty around this mean. This reflects the idea that we do not have a great deal of information regarding $p$, but we believe $p$ may be relatively low since not all fertile sea lions reproduce and mothers do not spend all of their time with their pups. We set the hyperparameters for $\psi$ as $\alpha_{\psi} = 2$ and $\beta_{\psi} = 2$. This corresponds to E$[\psi] = .5$, with most mass centered around .5 and much less mass near the tails at 0 and 1. This reflects the idea that we believe $\psi$ is likely to be higher than $p$, but we still have little information regarding this parameter.  
+We set the prior hyperparameters for $p$ as $\alpha_p = 1.5$ and $\beta_p = 4.5$. Then E$[p] = .25$, with a fair amount of uncertainty around this mean. This reflects the idea that we do not have a great deal of information regarding $p$, but we believe $p$ may be relatively low since not all fertile sea lions reproduce and mothers may be spotted without their pups. We set the hyperparameters for $\psi$ as $\alpha_{\psi} = 2$ and $\beta_{\psi} = 2$. This corresponds to E$[\psi] = .5$, with most mass centered around .5 and much less mass near the tails at 0 and 1. This reflects the idea that we believe $\psi$ is likely to be higher than $p$, but we still have little information regarding this parameter.  
 
 \section{Posterior Distribution}
 
@@ -57,7 +59,7 @@ We set the prior hyperparameters for $p$ as $\alpha_p = 1.5$ and $\beta_p = 4.5$
 
 \section{Algorithm}
 
-We derived the full conditionals for $p$, $\psi$, $\lambda$, and $\sigma_r^2$ (Appendix) and updated those parameters with a Gibbs sampler. We updated $\mathbf{d}, \mathbf{r}$, and $\mu_r$ with Metropolis-Hastings. We ran the MCMC algorithm for 100,000 iterations with a burn-in period of 50,000. Resulting trace plots showed thorough mixing and convergence of parameters ?!?!?!. 
+We derived the full conditionals for $p$, $\psi$, $\mu_r$, and $\sigma_r^2$ (Appendix) and updated those parameters with a Gibbs sampler. We updated $\mathbf{d}, \mathbf{r}$, and with Metropolis-Hastings. We ran the MCMC algorithm for 100,000 iterations with a burn-in period of 50,000. Resulting trace plots showed thorough mixing and convergence of parameters . 
 
 \section{Results}
 
@@ -71,6 +73,8 @@ Next steps: use within year data to inform detection.
 
 
 
+
+
 \section{Appendix}
 
 \subsection{Full Conditionals} 
@@ -78,7 +82,11 @@ Next steps: use within year data to inform detection.
 Full conditional distributions were derived for the parameters $p$, $\psi$, $\lambda$, and $\sigma_r^2$:
 \begin{eqnarray*}
 p | \cdot & \sim & \text{Beta} \left( \alpha_p + \sum_{i=1}^n \sum_{t=1}^T 1 \{ r_i \leq t \leq d_i \} y_{it}, \beta_p + \sum_{i=1}^n \sum_{t=1}^T 1\{ r_i \leq t \leq d_i \} (1 - y_{it}) \right)  \\
-\lambda | \cdot & \sim & \text{Gamma} \left( \alpha_{\lambda} + n, \beta_{\lambda} + \sum_{i=1}^n d_i \right) \\
+
+
+
+
+
 \psi | \cdot & \sim & \text{Beta}\left( \alpha_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i\} z_{it}, \beta_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i \} (1 - z_{it}) \right) \\
 \sigma_{r}^2 | \cdot & \sim & \text{IG} \left( \alpha_{\sigma} + \frac{n}{2}, \beta_{\sigma} + \frac{1}{2} \sum_{i=1}^n ( \log(r_i) - \mu_r)^2 \right)
 \end{eqnarray*}
@@ -95,6 +103,10 @@ Grandi, M.F., Dans, S.L., Garcia, N.A., Crespo, E.A. 2010. \emph{Growth and age 
 
 \bibitem{Melin}
 Melin, Sharon R.; DeLong,Robert L.; Orr, Anthony J.; Laake, Jeffrey L.; Harris, Jeffrey D.; NOAA NMFS Alaska Fisheries Science Center, Marine Mammal Laboratory (2016). Survival and natality rate observations of California sea lions at San Miguel Island, California conducted by Alaska Fisheries Science Center, National Marine Mammal Laboratory from 1987-09-20 to 2014-09-25 (NCEI Accession 0145167). Version 2.2. NOAA National Centers for Environmental Information. Dataset. [Nov. 19, 2017]
+
+\bibitem{Hernandez}
+Hernandez-Camacho, Claudia J.; Aurioles-Gamboa, David; Laake, Jeffrey; Gerber, Leah R. 2008. Survival Rates of the California Sea Lion, Zalophus californianus, in Mexico, Journal of Mammalogy, 89(4): 1059–1066, https://doi.org/10.1644/07-MAMM-A-404.1
+
 
 \end{thebibliography}
 

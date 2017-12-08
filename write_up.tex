@@ -76,8 +76,14 @@ We derived the full conditionals for $p$, $\psi$, $\mu_r$, and $\sigma_r^2$ (App
 
 \begin{figure}
 \centering
-\includegraphics[width = \textwidth]{Posterior.d.png}
-\caption{Posterior distribution on $d$ for individuals which we last saw in certain years.}
+\includegraphics[width = \textwidth]{Posterior_d.png}
+\caption{Posterior and prior distributions on $d$ for individuals which we last saw in certain years.}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width = .4\textwidth]{Posterior_r.png}
+\caption{Posterior and prior distributions on $r$.}
 \end{figure}
 
 \section{Inference}
@@ -99,15 +105,15 @@ Our posterior distributions for $r_i$, the time until individual $i$ became paro
 
 \section{Appendix}
 
-% \subsection{Full Conditionals} 
-% 
-% Full conditional distributions were derived for the parameters $p$, $\psi$, $\lambda$, and $\sigma_r^2$:
-% \begin{eqnarray*}
-% p | \cdot & \sim & \text{Beta} \left( \alpha_p + \sum_{i=1}^n \sum_{t=1}^T 1 \{ r_i \leq t \leq d_i \} y_{it}, \beta_p + \sum_{i=1}^n \sum_{t=1}^T 1\{ r_i \leq t \leq d_i \} (1 - y_{it}) \right)  \\
-% \psi | \cdot & \sim & \text{Beta}\left( \alpha_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i\} z_{it}, \beta_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i \} (1 - z_{it}) \right) \\
-% \sigma_{r}^2 | \cdot & \sim & \text{IG} \left( \alpha_{\sigma} + \frac{n}{2}, \beta_{\sigma} + \frac{1}{2} \sum_{i=1}^n ( \log(r_i) - \mu_r)^2 \right)
-% \end{eqnarray*}
-% The parameters $\mathbf{d}, \mathbf{r}$, and $\mu_r$, did not have recognizable full conditionals so we updated them with Metropolis-Hastings.  
+\subsection{Full Conditionals}
+
+Full conditional distributions were derived for the parameters $p$, $\psi$, $\lambda$, and $\sigma_r^2$:
+\begin{eqnarray*}
+p | \cdot & \sim & \text{Beta} \left( \alpha_p + \sum_{i=1}^n \sum_{t=1}^T 1 \{ r_i \leq t \leq d_i \} y_{it}, \beta_p + \sum_{i=1}^n \sum_{t=1}^T 1\{ r_i \leq t \leq d_i \} (1 - y_{it}) \right)  \\
+\psi | \cdot & \sim & \text{Beta}\left( \alpha_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i\} z_{it}, \beta_{\psi} + \sum_{i=1}^n \sum_{t=1}^T 1\{ t \leq d_i \} (1 - z_{it}) \right) \\
+\sigma_{r}^2 | \cdot & \sim & \text{IG} \left( \alpha_{\sigma} + \frac{n}{2}, \beta_{\sigma} + \frac{1}{2} \sum_{i=1}^n ( \log(r_i) - \mu_r)^2 \right)
+\end{eqnarray*}
+The parameters $\mathbf{d}, \mathbf{r}$, and $\mu_r$, did not have recognizable full conditionals so we updated them with Metropolis-Hastings.
 
 \begin{thebibliography}{99}
 

@@ -80,12 +80,21 @@ legend(x = -117, y = -.5, legend=c("Posterior", "Prior"), lwd=c(2,2), col= c("bl
 par(mfrow = c(3,3))
 for(k in seq_along(cut.points)) {
   #cut.point = cut.points[k]
+  cut.point = cut.points[k]
   inds = which(min.d == cut.point)
   #const = 1-.2*pnorm(cut.point, 25, 3) -.8*pexp(cut.point, 1/8)
   plot(density(as.vector(out$r.save[inds,(n.burn+1):n.mcmc])), breaks = 100, lwd = 2,
-       main = paste("Individuals Last Seen at", cut.point, "years"), xlab = "r")
+       main = paste("Individuals Last Seen at", cut.point, "years"), xlab = "r",
+       xlim = c(0,8))
 }
 
+supp = seq(0, 6, .001)
+plot(density(as.vector(out$r.save)), xlim = c(0,6), lwd = 2, 
+     main = "Posterior and Prior Distributions for r",
+     xlab = 'r')
+lines(supp, dlnorm(supp, 1.6, .0625), col = "grey50", lwd = 2)
+legend("top", legend = c("Posterior", "Prior"), lwd = c(2,2),
+       col = c("black", "grey50"))
 
 library(xtable)
 res = c(mean(out$p.save[(n.burn+1):n.mcmc]), 
